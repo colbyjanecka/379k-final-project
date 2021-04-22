@@ -9,6 +9,7 @@ import time
 import mobilenet_rm_filt_pt
 import torch.nn.utils.prune as prune
 from main_pt import train_model
+from nni.algorithms.compression.pytorch.pruning import LevelPruner
 
 parser = argparse.ArgumentParser(description='EE379K HW3 - Starter PyTorch code')
 # Define the mini-batch size, here the size is 128 images per batch
@@ -50,26 +51,27 @@ def channel_fraction_pruning(model, fraction):
 def export_pt_to_onnx(model, outputFileName):
     dummy_input = torch.randn(1, 3, 32, 32, requires_grad=False)
     outputPath = "models/onnx/" + outputFileName + ".onnx"
-    torch.onnx.export(model, dummy_input, outputPath, export_params=True, opset_version=10)
+    torch.onnx.export(model, dummy_input, outputPath, export_params=True, opset_version=11)
 
-
-fractions = [0.05, 0.25, 0.5, 0.75, 0.9]
-epochs = [0, 3, 5]
+fractions = [0.05, 0.25, 0.5, 0.75, 0.9, 0.976]
+epochs = [0, 3, 5, 25, 100]
 model = mobilenet_rm_filt_pt.MobileNetv1()
 
 for frac in fractions:
     for epoch in epochs:
+
         print(str(frac), str(epoch))
         model = mobilenet_rm_filt_pt.MobileNetv1()
         model = model.cuda()
-        model.load_state_dict(torch.load("/mbnv1_pretrained/mbnv1_pt.pt", map_location=torch.device("cuda")))
+        model.load_state_dict(torch.load("mbnv1_pt.pt", map_location=torch.device("cuda")))
         criterion = nn.CrossEntropyLoss()  # Softmax is internally computed.
         optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
         channel_fraction_pruning(model, float(frac))
+
         pruned_model = mobilenet_rm_filt_pt.remove_channel(model)
 
         train_model(model, epoch, train_loader, test_loader, optimizer, criterion, len(train_dataset), batch_size)
 
         model.cpu()
-        export_pt_to_onnx(model, "frac_" + str(frac) + "_epochs_" + str(epoch) )
+        export_pt_to_onnx(model, "frac_" + str(frac) + "_epochs_" + str(epoch))
