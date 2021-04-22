@@ -1,0 +1,11 @@
+keras2onnx==1.7.0
+numpy==1.18
+onnx==1.8.1
+onnxconverter-common==1.7.0
+onnxruntime==1.7.0
+protobuf==3.14.0
+tensorflow-gpu==2.3.1
+thop
+torch==1.7.1
+torchsummary
+torchvision==0.8.2
