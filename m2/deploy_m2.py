@@ -99,7 +99,7 @@ def evaluate_model(onnx_model_name):
         if max_power < total_power:
             max_power = total_power
         
-        current_memory_usage = (psutil.virtual_memory().used/1000000) - pre_inference_memory
+        current_memory_usage = psutil.virtual_memory().used/1000000
         if max_memory < current_memory_usage:
             max_memory = current_memory_usage
         
